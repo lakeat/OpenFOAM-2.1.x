@@ -71,4 +71,8 @@ fvAgglomerationMethods/Allwmake $*
 wmake $makeType fvMotionSolver
 wmake $makeType engine
 
+
+# Added by Daniel Wei, 20120425
+wmake $makeType ALGLIB
+
 # ----------------------------------------------------------------- end-of-file
