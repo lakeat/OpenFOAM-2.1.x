@@ -85,25 +85,25 @@
 
 
     dimensionedScalar zeroSensitivity("0", dimVelocity*dimVelocity, 0.0);
-    dimensionedScalar zeroAlpha("0", dimless/dimTime, 0.0);
+//    dimensionedScalar zeroAlpha("0", dimless/dimTime, 0.0);
 
     dimensionedScalar lambda(laminarTransport.lookup("lambda"));
-    dimensionedScalar alphaMax(laminarTransport.lookup("alphaMax"));
+//    dimensionedScalar alphaMax(laminarTransport.lookup("alphaMax"));
 
     const labelList& inletCells = mesh.boundary()["inlet"].faceCells();
     //const labelList& outletCells = mesh.boundary()["outlet"].faceCells();
 
-    volScalarField alpha
-    (
-        IOobject
-        (
-            "alpha",
-            runTime.timeName(),
-            mesh,
-            IOobject::READ_IF_PRESENT,
-            IOobject::AUTO_WRITE
-        ),
-        lambda*max(Ua & U, zeroSensitivity)
-    );
-    zeroCells(alpha, inletCells);
+//    volScalarField alpha
+//    (
+//        IOobject
+//        (
+//            "alpha",
+//            runTime.timeName(),
+//            mesh,
+//            IOobject::READ_IF_PRESENT,
+//            IOobject::AUTO_WRITE
+//        ),
+//        lambda*max(Ua & U, zeroSensitivity)
+//    );
+//    zeroCells(alpha, inletCells);
     //zeroCells(alpha, outletCells);

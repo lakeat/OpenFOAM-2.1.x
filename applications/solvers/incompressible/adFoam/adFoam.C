@@ -38,6 +38,10 @@ Description
         H.G. Weller
         AIAA-2007-3947
         http://pdf.aiaa.org/preview/CDReadyMCFD07_1379/PV2007_3947.pdf
+        Another paper, more clear,
+        "A continuous adjoint formulation for the computation of topological 
+         and surface sensitivities of ducted flows"
+        C. Othmer
     \endverbatim
 
     Note that this solver optimises for total pressure loss whereas the
@@ -91,11 +95,11 @@ int main(int argc, char *argv[])
         //alpha +=
         //    mesh.relaxationFactor("alpha")
         //   *(lambda*max(Ua & U, zeroSensitivity) - alpha);
-        alpha +=
-            mesh.fieldRelaxationFactor("alpha")
-           *(min(max(alpha + lambda*(Ua & U), zeroAlpha), alphaMax) - alpha);
+//        alpha +=
+//            mesh.fieldRelaxationFactor("alpha")
+//           *(min(max(alpha + lambda*(Ua & U), zeroAlpha), alphaMax) - alpha);
 
-        zeroCells(alpha, inletCells);
+//        zeroCells(alpha, inletCells);
         //zeroCells(alpha, outletCells);
 
         // Pressure-velocity SIMPLE corrector
@@ -106,7 +110,6 @@ int main(int argc, char *argv[])
             (
                 fvm::div(phi, U)
               + turbulence->divDevReff(U)
-              + fvm::Sp(alpha, U)
             );
 
             UEqn().relax();
@@ -167,7 +170,6 @@ int main(int argc, char *argv[])
                 fvm::div(-phi, Ua)
               - adjointTransposeConvection
               + turbulence->divDevReff(Ua)
-              + fvm::Sp(alpha, Ua)
             );
 
             UaEqn().relax();
