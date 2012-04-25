@@ -27,6 +27,7 @@ Class
 
 Description
     Durbin zetaF turbulence model.
+    Modified by Daniel Wei, @ NatHaz, 20120425
 
 SourceFiles
     zetaF.C
