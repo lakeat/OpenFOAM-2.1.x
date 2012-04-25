@@ -24,7 +24,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "V2F_original.H"
+#include "DurbinV2F.H"
 #include "addToRunTimeSelectionTable.H"
 #include "wallFvPatch.H"
 
@@ -36,35 +36,35 @@ namespace incompressible
 {
 namespace RASModels
 {
-#include "/home/rom/OpenFOAM/OpenFOAM-1.6/applications/solvers/incompressible/boundaryFoam2/scalars.H"
+//#include "/home/rom/OpenFOAM/OpenFOAM-1.6/applications/solvers/incompressible/boundaryFoam2/scalars.H"
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-defineTypeNameAndDebug(V2F_original, 0);
-addToRunTimeSelectionTable(RASModel, V2F_original, dictionary);
+defineTypeNameAndDebug(DurbinV2F, 0);
+addToRunTimeSelectionTable(RASModel, DurbinV2F, dictionary);
 
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
 
-tmp<volScalarField> V2F_original::T() const
+tmp<volScalarField> DurbinV2F::T() const
 {
 return min ( 
              max(
-             (k_+k0_)/(epsilon_+epsilonSmall_) ,CT*sqrt(nu()/(epsilon_ +epsilonSmall_))
+             (k_+kMin_)/(epsilon_+VSMALL) ,CT*sqrt(nu()/(epsilon_ +VSMALL))
                  ),
-            alpha*(k_+k0_)/( sqrt(6.0)*Cmu*(mag(symm(fvc::grad(U_)))+f0_)*(v2_+k0_) )
+            alpha*(k_+kMin_)/( sqrt(6.0)*Cmu*(mag(symm(fvc::grad(U_)))+f0_)*(v2_+kMin_) )
             );
 
-/*return max ((k_+k0_)/(epsilon_+epsilonSmall_), CT*sqrt(nu()/(epsilon_+epsilonSmall_)));*/
+/*return max ((k_+kMin_)/(epsilon_+VSMALL), CT*sqrt(nu()/(epsilon_+VSMALL)));*/
 
 }
 
-tmp<volScalarField> V2F_original::L() const
+tmp<volScalarField> DurbinV2F::L() const
 {
     return CL*max(
                       min(
-                              pow((k_+k0_),1.5)/(epsilon_ +epsilonSmall_),
-                              pow((k_+k0_),1.5)/(sqrt(6.0)*Cmu*(mag(symm(fvc::grad(U_)))+f0_)*(v2_+k0_))
+                              pow((k_+kMin_),1.5)/(epsilon_ +VSMALL),
+                              pow((k_+kMin_),1.5)/(sqrt(6.0)*Cmu*(mag(symm(fvc::grad(U_)))+f0_)*(v2_+kMin_))
                           ),
-                      CEta*pow(pow(nu(),3)/(epsilon_+epsilonSmall_),0.25)
+                      CEta*pow(pow(nu(),3)/(epsilon_+VSMALL),0.25)
                   );
 
 /*return CL*max( pow(k_,1.5)/epsilon_ ,CEta*pow(pow(nu(),3)/epsilon_,0.25));*/
@@ -75,14 +75,16 @@ tmp<volScalarField> V2F_original::L() const
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 // from components
-V2F_original::V2F_original
+DurbinV2F::DurbinV2F
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& lamTransportModel
+    transportModel& transport,
+    const word& turbulenceModelName,
+    const word& modelName
 )
 :
-    RASModel(typeName, U, phi, lamTransportModel),
+    RASModel(modelName, U, phi, transport, turbulenceModelName),
 
     Cmu
     (
@@ -266,7 +268,7 @@ V2F_original::V2F_original
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-tmp<volSymmTensorField> V2F_original::R() const
+tmp<volSymmTensorField> DurbinV2F::R() const
 {
     return tmp<volSymmTensorField>
     (
@@ -287,7 +289,7 @@ tmp<volSymmTensorField> V2F_original::R() const
 }
 
 
-tmp<volSymmTensorField> V2F_original::devReff() const
+tmp<volSymmTensorField> DurbinV2F::devReff() const
 {
     return tmp<volSymmTensorField>
     (
@@ -307,7 +309,7 @@ tmp<volSymmTensorField> V2F_original::devReff() const
 }
 
 
-tmp<fvVectorMatrix> V2F_original::divDevReff(volVectorField& U) const
+tmp<fvVectorMatrix> DurbinV2F::divDevReff(volVectorField& U) const
 {
     return
     (
@@ -317,7 +319,7 @@ tmp<fvVectorMatrix> V2F_original::divDevReff(volVectorField& U) const
 }
 
 
-bool V2F_original::read()
+bool DurbinV2F::read()
 {
     if (RASModel::read())
     {
@@ -343,7 +345,7 @@ bool V2F_original::read()
 }
 
 
-void V2F_original::correct()
+void DurbinV2F::correct()
 {
     transportModel_.correct();
 
@@ -362,7 +364,7 @@ void V2F_original::correct()
 
     volScalarField T_ = T();
     volScalarField L_ = L();
-    volScalarField Ceps1 = 1.4*(1+0.05*sqrt(k_/(v2_+k0_)));
+    volScalarField Ceps1 = 1.4*(1+0.05*sqrt(k_/(v2_+kMin_)));
    // Ceps1 = 1.3+0.25/(1+pow(y/(2*L_/CL),8));
     
     //bound f and k for stability
@@ -380,7 +382,7 @@ void V2F_original::correct()
     );
     kEqn().relax();
     solve(kEqn);
-    bound(k_, k0_);
+    bound(k_, kMin_);
     k_=-k_;
     bound(k_, k1_);
     k_=-k_;
@@ -399,7 +401,7 @@ void V2F_original::correct()
 #   include "epsilonWallI.H"
 #   include "wallDissipation.H"
     solve(epsEqn);
-    bound(epsilon_, epsilon0_);
+    bound(epsilon_, epsilonMin_);
 
     bound(f_, f1_);
     // v2 equation
@@ -414,7 +416,7 @@ void V2F_original::correct()
     );
     v2Eqn().relax();
     solve(v2Eqn);
-    bound(v2_, k0_);
+    bound(v2_, kMin_);
 
 
     // f equation
@@ -423,7 +425,7 @@ void V2F_original::correct()
       - fvm::laplacian(f_)
      ==
       - fvm::Sp(1.0/sqr(L_),f_)
-      - ((1.0-C1)*(2/3-v2_/(k_+k0_))/T_-C2*G/(k_+k0_))/sqr(L_)
+      - ((1.0-C1)*(2/3-v2_/(k_+kMin_))/T_-C2*G/(k_+kMin_))/sqr(L_)
     );
     fEqn().relax();
 #   include "FWallI.H"

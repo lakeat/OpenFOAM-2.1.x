@@ -23,17 +23,18 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    V2F_original
+    DurbinV2F
 
 Description
-    Durbin V2F_original turbulence model.
+    Durbin V2F turbulence model (the original).
+    Modified by Daniel Wei, @ NatHaz, 20120425
 
 SourceFiles
-    V2F_original.C
+    DurbinV2F.C
 
 \*---------------------------------------------------------------------------*/
-#ifndef V2F_original_H
-#define V2F_original_H
+#ifndef DurbinV2F_H
+#define DurbinV2F_H
 
 #include "RASModel.H"
 
@@ -51,10 +52,10 @@ namespace RASModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class V2F_original Declaration
+                           Class DurbinV2F Declaration
 \*---------------------------------------------------------------------------*/
 
-class V2F_original
+class DurbinV2F
 :
     public RASModel
 {
@@ -89,22 +90,24 @@ class V2F_original
 public:
 
     //- Runtime type information
-    TypeName("V2F_original");
+    TypeName("DurbinV2F");
 
     // Constructors
 
         //- from components
-        V2F_original
+        DurbinV2F
         (
             const volVectorField& U,
             const surfaceScalarField& phi,
-            transportModel& transport
+            transportModel& transport,
+            const word& turbulenceModelName = turbulenceModel::typeName,
+            const word& modelName = typeName
         );
 
 
     // Destructor
 
-        ~V2F_original(){}
+        ~DurbinV2F(){}
 
 
     // Member Functions

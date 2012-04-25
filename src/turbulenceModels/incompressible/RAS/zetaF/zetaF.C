@@ -78,10 +78,12 @@ zetaF::zetaF
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& lamTransportModel
+    transportModel& transport,
+    const word& turbulenceModelName,
+    const word& modelName
 )
 :
-    RASModel(typeName, U, phi, lamTransportModel),
+    RASModel(modelName, U, phi, transport, turbulenceModelName),
 
     Cmu
     (
@@ -254,7 +256,7 @@ zetaF::zetaF
     ),
 
 
-    nut_(min(CmuKE*sqr(k_)/(epsilon_ + epsilonSmall_), Cmu*zeta_*k_*T()))
+    nut_(min(CmuKE*sqr(k_)/(epsilon_ + VSMALL), Cmu*zeta_*k_*T()))
     //nut_(Cmu*zeta_*k_*T())
 
 {
@@ -374,7 +376,7 @@ void zetaF::correct()
     );
     kEqn().relax();
     solve(kEqn);
-    bound(k_, k0_);
+    bound(k_, kMin_);
 
     // Dissipation rate equation
     tmp<fvScalarMatrix> epsEqn
@@ -390,7 +392,7 @@ void zetaF::correct()
 #   include "epsilonWallI.H"
 #   include "wallDissipation.H"
     solve(epsEqn);
-    bound(epsilon_, epsilon0_);
+    bound(epsilon_, epsilonMin_);
 
     // zeta equation
     tmp<fvScalarMatrix> zetaEqn
@@ -427,7 +429,7 @@ void zetaF::correct()
 
 
    // nut_=Cmu*zeta_*k_*T();
-    nut_=min(CmuKE*sqr(k_)/(epsilon_ + epsilonSmall_), Cmu*zeta_*k_*T());
+    nut_=min(CmuKE*sqr(k_)/(epsilon_ + VSMALL), Cmu*zeta_*k_*T());
 
 
 }

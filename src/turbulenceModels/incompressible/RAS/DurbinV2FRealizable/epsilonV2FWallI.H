@@ -60,7 +60,7 @@ Description
         {
 #           include "checkPatchFieldTypesEpsilonV2F.H"
 
-            const scalarField& nuw = nu().boundaryField()[patchi];
+            const scalarField& nuw = nu()().boundaryField()[patchi];
 
             scalarField magFaceGradU = mag(U_.boundaryField()[patchi].snGrad());
 

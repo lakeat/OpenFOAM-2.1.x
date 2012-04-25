@@ -23,18 +23,20 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Class
-    DurbinV2F
+    DurbinV2FRealizable
 
 Description
-    Durbin V2F turbulence model.
+    Modified Durbin V2F turbulence model with realizable conditions, it's 
+    practically the same as above with only modified conditions for T and L.
+    Modified by Daniel Wei, @ NatHaz, 20120425
 
 SourceFiles
-    DurbinV2F.C
+    DurbinV2FRealizable.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef DurbinV2F_H
-#define DurbinV2F_H
+#ifndef DurbinV2FRealizable_H
+#define DurbinV2FRealizable_H
 
 #include "RASModel.H"
 
@@ -50,10 +52,10 @@ namespace RASModels
 {
 
 /*---------------------------------------------------------------------------*\
-                           Class DurbinV2F Declaration
+                           Class DurbinV2FRealizable Declaration
 \*---------------------------------------------------------------------------*/
 
-class DurbinV2F
+class DurbinV2FRealizable
 :
     public RASModel
 {
@@ -89,22 +91,24 @@ class DurbinV2F
 public:
 
     //- Runtime type information
-    TypeName("DurbinV2F");
+    TypeName("DurbinV2FRealizable");
 
     // Constructors
 
         //- from components
-        DurbinV2F
+        DurbinV2FRealizable
         (
             const volVectorField& U,
             const surfaceScalarField& phi,
-            transportModel& transport
+            transportModel& transport,
+            const word& turbulenceModelName = turbulenceModel::typeName,
+            const word& modelName = typeName
         );
 
 
     // Destructor
 
-        ~DurbinV2F(){}
+        ~DurbinV2FRealizable(){}
 
 
     // Member Functions

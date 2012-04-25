@@ -59,7 +59,7 @@ Description
         if (isType<wallFvPatch>(curPatch))
         {
 
-            const scalarField& nuw = nu().boundaryField()[patchi];
+            const scalarField& nuw = nu()().boundaryField()[patchi];
 
             scalarField magFaceGradU = mag(U_.boundaryField()[patchi].snGrad());
 

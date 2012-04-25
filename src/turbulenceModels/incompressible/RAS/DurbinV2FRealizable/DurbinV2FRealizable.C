@@ -24,7 +24,7 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "DurbinV2F.H"
+#include "DurbinV2FRealizable.H"
 #include "addToRunTimeSelectionTable.H"
 #include "wallFvPatch.H"
 
@@ -39,34 +39,36 @@ namespace RASModels
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-defineTypeNameAndDebug(DurbinV2F, 0);
-addToRunTimeSelectionTable(RASModel, DurbinV2F, dictionary);
+defineTypeNameAndDebug(DurbinV2FRealizable, 0);
+addToRunTimeSelectionTable(RASModel, DurbinV2FRealizable, dictionary);
 
 // * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
 
-tmp<volScalarField> DurbinV2F::T() const
+tmp<volScalarField> DurbinV2FRealizable::T() const
 {
-return min ( max(k_/epsilon_ ,6.0*sqrt(nu()/epsilon_ )),0.6*k_/(sqrt(6.0)*Cmu*v2_*mag(symm(fvc::grad(U_)))+epsilonSmall_ ));
-//return max(k_/(epsilon_ + epsilonSmall_),6.0*sqrt(nu()/(epsilon_ + epsilonSmall_)));
+return min ( max(k_/epsilon_ ,6.0*sqrt(nu()/epsilon_ )),0.6*k_/(sqrt(6.0)*Cmu*v2_*mag(symm(fvc::grad(U_)))+VSMALL ));
+//return max(k_/(epsilon_ + VSMALL),6.0*sqrt(nu()/(epsilon_ + VSMALL)));
 }
 
-tmp<volScalarField> DurbinV2F::L() const
+tmp<volScalarField> DurbinV2FRealizable::L() const
 {
-return CL*max( min(pow(k_,1.5)/epsilon_ ,pow(k_,1.5)/(sqrt(6.0)*Cmu*v2_*mag(symm(fvc::grad(U_)))+epsilonSmall_)),CEta*pow(pow(nu(),3.0)/epsilon_ ,0.25));
-//return  CL*max(pow(k_,1.5)/(epsilon_ + epsilonSmall_),CEta*pow(pow(nu(),3.0)/(epsilon_ + epsilonSmall_),0.25));
+return CL*max( min(pow(k_,1.5)/epsilon_ ,pow(k_,1.5)/(sqrt(6.0)*Cmu*v2_*mag(symm(fvc::grad(U_)))+VSMALL)),CEta*pow(pow(nu(),3.0)/epsilon_ ,0.25));
+//return  CL*max(pow(k_,1.5)/(epsilon_ + VSMALL),CEta*pow(pow(nu(),3.0)/(epsilon_ + VSMALL),0.25));
 }
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 // from components
-DurbinV2F::DurbinV2F
+DurbinV2FRealizable::DurbinV2FRealizable
 (
     const volVectorField& U,
     const surfaceScalarField& phi,
-    transportModel& lamTransportModel
+    transportModel& transport,
+    const word& turbulenceModelName,
+    const word& modelName
 )
 :
-    RASModel(typeName, U, phi, lamTransportModel),
+    RASModel(modelName, U, phi, transport, turbulenceModelName),
 
     Cmu
     (
@@ -241,7 +243,7 @@ DurbinV2F::DurbinV2F
 
 
     // Calculate viscosity (with Davidson correction - 2003)
-    nut_(min(CmuKE*sqr(k_)/(epsilon_ + epsilonSmall_), Cmu*v2_*T()))
+    nut_(min(CmuKE*sqr(k_)/(epsilon_ + VSMALL), Cmu*v2_*T()))
 
 {
 
@@ -252,7 +254,7 @@ DurbinV2F::DurbinV2F
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-tmp<volSymmTensorField> DurbinV2F::R() const
+tmp<volSymmTensorField> DurbinV2FRealizable::R() const
 {
     return tmp<volSymmTensorField>
     (
@@ -273,7 +275,7 @@ tmp<volSymmTensorField> DurbinV2F::R() const
 }
 
 
-tmp<volSymmTensorField> DurbinV2F::devReff() const
+tmp<volSymmTensorField> DurbinV2FRealizable::devReff() const
 {
     return tmp<volSymmTensorField>
     (
@@ -293,7 +295,7 @@ tmp<volSymmTensorField> DurbinV2F::devReff() const
 }
 
 
-tmp<fvVectorMatrix> DurbinV2F::divDevReff(volVectorField& U) const
+tmp<fvVectorMatrix> DurbinV2FRealizable::divDevReff(volVectorField& U) const
 {
     return
     (
@@ -303,7 +305,7 @@ tmp<fvVectorMatrix> DurbinV2F::divDevReff(volVectorField& U) const
 }
 
 
-bool DurbinV2F::read()
+bool DurbinV2FRealizable::read()
 {
     if (RASModel::read())
     {
@@ -329,7 +331,7 @@ bool DurbinV2F::read()
 }
 
 
-void DurbinV2F::correct()
+void DurbinV2FRealizable::correct()
 {
     transportModel_.correct();
 
@@ -359,7 +361,7 @@ void DurbinV2F::correct()
     );
     kEqn().relax();
     solve(kEqn);
-    bound(k_, k0_);
+    bound(k_, kMin_);
 
     // Dissipation rate equation
     tmp<fvScalarMatrix> epsEqn
@@ -375,7 +377,7 @@ void DurbinV2F::correct()
 #   include "epsilonV2FWallI.H"
 #   include "wallDissipationV2FI.H"
     solve(epsEqn);
-    bound(epsilon_, epsilon0_);
+    bound(epsilon_, epsilonMin_);
 
     // v2 equation
     tmp<fvScalarMatrix> v2Eqn
@@ -390,7 +392,7 @@ void DurbinV2F::correct()
     );
     v2Eqn().relax();
     solve(v2Eqn);
-    bound(v2_, k0_);
+    bound(v2_, kMin_);
 
     // f equation
     tmp<fvScalarMatrix> fEqn
@@ -407,7 +409,7 @@ void DurbinV2F::correct()
 
 
     // Re-calculate viscosity (with Davidson correction - 2003)
-    nut_ = min(CmuKE*sqr(k_)/(epsilon_ + epsilonSmall_),Cmu*v2_*T());
+    nut_ = min(CmuKE*sqr(k_)/(epsilon_ + VSMALL),Cmu*v2_*T());
 
 }
 
