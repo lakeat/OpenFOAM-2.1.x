@@ -18,6 +18,12 @@ LienLeschzinerLowRe/LienLeschzinerLowRe.C
 LamBremhorstKE/LamBremhorstKE.C
 kkLOmega/kkLOmega.C
 
+/* New Added 20120425 */
+/* cfd-online.com/Forums/openfoam-solving/58440-v2f-turbulence-model-3.html*/
+DurbinV2F/DurbinV2F.C
+DurbinV2FRealizable/DurbinV2FRealizable.C
+zetaF/zetaF.C
+
 /* Wall functions */
 wallFunctions = derivedFvPatchFields/wallFunctions
 
