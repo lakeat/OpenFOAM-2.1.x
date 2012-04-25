@@ -1,0 +1,5 @@
+adjointOutletPressure/adjointOutletPressureFvPatchScalarField.C
+adjointOutletVelocity/adjointOutletVelocityFvPatchVectorField.C
+adFoam.C
+
+EXE = $(FOAM_APPBIN)/adFoam

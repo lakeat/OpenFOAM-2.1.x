@@ -1,4 +1,5 @@
 EXE_INC = \
+    -I$(LIB_SRC)/ALGLIB/lnInclude \
     -I$(LIB_SRC)/triSurface/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
     -I$(LIB_SRC)/dynamicMesh/lnInclude \
@@ -6,6 +7,7 @@ EXE_INC = \
     -I$(LIB_SRC)/postProcessing/functionObjects/forces/lnInclude \
 
 LIB_LIBS = \
+    -lALGLIB \
     -ltriSurface \
     -lmeshTools \
     -ldynamicMesh \

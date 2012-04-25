@@ -36,6 +36,7 @@ $(derivedPoint)/angularOscillatingDisplacement/angularOscillatingDisplacementPoi
 $(derivedPoint)/surfaceSlipDisplacement/surfaceSlipDisplacementPointPatchVectorField.C
 $(derivedPoint)/surfaceDisplacement/surfaceDisplacementPointPatchVectorField.C
 $(derivedPoint)/waveDisplacement/waveDisplacementPointPatchVectorField.C
+$(derivedPoint)/udfTypeCMotionWall/udfTypeCMotionWallPointPatchVectorField.C
 
 $(derivedPoint)/timeVaryingMappedFixedValue/timeVaryingMappedFixedValuePointPatchFields.C
 
