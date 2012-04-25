@@ -1,0 +1,15 @@
+alglibinternal.cpp
+ap.cpp
+diffequations.cpp
+integration.cpp
+linalg.cpp
+solvers.cpp
+statistics.cpp
+alglibmisc.cpp
+dataanalysis.cpp
+fasttransforms.cpp
+interpolation.cpp
+optimization.cpp
+specialfunctions.cpp
+
+LIB = $(FOAM_LIBBIN)/libALGLIB
