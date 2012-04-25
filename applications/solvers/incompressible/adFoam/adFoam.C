@@ -53,19 +53,7 @@ Description
 #include "singlePhaseTransportModel.H"
 #include "RASModel.H"
 #include "simpleControl.H"
-
-template<class Type>
-void zeroCells
-(
-    GeometricField<Type, fvPatchField, volMesh>& vf,
-    const labelList& cells
-)
-{
-    forAll(cells, i)
-    {
-        vf[cells[i]] = pTraits<Type>::zero;
-    }
-}
+#include "zeroCells.H"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -92,16 +80,6 @@ int main(int argc, char *argv[])
 
         laminarTransport.lookup("lambda") >> lambda;
 
-        //alpha +=
-        //    mesh.relaxationFactor("alpha")
-        //   *(lambda*max(Ua & U, zeroSensitivity) - alpha);
-//        alpha +=
-//            mesh.fieldRelaxationFactor("alpha")
-//           *(min(max(alpha + lambda*(Ua & U), zeroAlpha), alphaMax) - alpha);
-
-//        zeroCells(alpha, inletCells);
-        //zeroCells(alpha, outletCells);
-
         // Pressure-velocity SIMPLE corrector
         {
             // Momentum predictor
@@ -110,9 +88,14 @@ int main(int argc, char *argv[])
             (
                 fvm::div(phi, U)
               + turbulence->divDevReff(U)
+              ==
+                sources(U)
             );
 
             UEqn().relax();
+
+            // Not knowing why this is deleted?
+            sources.constrain(UEqn());
 
             solve(UEqn() == -fvc::grad(p));
 
@@ -148,6 +131,9 @@ int main(int argc, char *argv[])
             // Momentum corrector
             U -= rAU*fvc::grad(p);
             U.correctBoundaryConditions();
+            
+            // Not knowing why this is deleted?
+            sources.correct(U);
         }
 
         // Adjoint Pressure-velocity SIMPLE corrector
@@ -170,9 +156,14 @@ int main(int argc, char *argv[])
                 fvm::div(-phi, Ua)
               - adjointTransposeConvection
               + turbulence->divDevReff(Ua)
+              ==
+                sources(Ua)
             );
 
             UaEqn().relax();
+
+            // Not knowing why this is deleted?
+            sources.constrain(UaEqn());
 
             solve(UaEqn() == -fvc::grad(pa));
 
@@ -208,6 +199,9 @@ int main(int argc, char *argv[])
             // Adjoint momentum corrector
             Ua -= rAUa*fvc::grad(pa);
             Ua.correctBoundaryConditions();
+            
+            // Not knowing why this is deleted?
+            sources.correct(Ua);
         }
 
         turbulence->correct();
